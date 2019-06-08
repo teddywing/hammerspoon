@@ -1,0 +1,18 @@
+(lldb) p chars
+(UniChar [4]) $0 = ([0] = 97, [1] = 0, [2] = 0, [3] = 0)
+(lldb) p name
+(const char *) $1 = 0x000060300028a1d8 "a"
+(lldb) p name
+(const char *) $6 = 0x000060300028f908 "9"
+(lldb) c
+Process 41040 resuming
+(lldb) p name
+(const char *) $7 = 0x000060700011a040 "🕳"
+(lldb) p chars
+(UniChar [4]) $8 = ([0] = 55357, [1] = 56691, [2] = 0, [3] = 0)
+(lldb) c
+Process 41040 resuming
+(lldb) p name
+(const char *) $9 = 0x0000000000000000
+(lldb) p chars
+(UniChar [4]) $10 = ([0] = 61, [1] = 56691, [2] = 0, [3] = 0)

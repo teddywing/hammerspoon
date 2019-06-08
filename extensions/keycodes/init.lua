@@ -46,8 +46,12 @@ local fallbackKeyMap = {
 local attachFallbackTable = function(tableMap)
     return setmetatable(tableMap, {
         __index = function(self, key)
+        local logfile = io.open('/tmp/hammerspoon.log', 'a+')
+        logfile:write('key ', key)
             if type(key) == "string" then key = key:lower() end
             local newKey = rawget(self, key)
+        logfile:write('newkey ', newKey)
+        logfile:write('fallbackKeyMap ', fallbackKeyMap)
             if newKey then
                 return newKey
             else
@@ -60,6 +64,7 @@ local attachFallbackTable = function(tableMap)
                     return nil
                 end
             end
+        logfile:close()
         end
     })
 end

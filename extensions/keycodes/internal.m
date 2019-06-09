@@ -53,6 +53,10 @@ int keycodes_cachemap(lua_State* L) {
                                &realLength,
                                chars) == noErr && realLength > 0) {
                 const char* name = [[NSString stringWithCharacters:chars length:1] UTF8String];
+                // NSLog(@"%@", [NSString stringWithCharacters:chars length:4]);
+                if (!name) {
+                    name = "";
+                }
 
                 pushkeycode(L, relocatableKeyCodes[i], name);
             }

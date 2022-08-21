@@ -13,12 +13,18 @@
 @import LuaSkin;
 
 #import "HSStreamDeckDevice.h"
+#import "HSStreamDeckDeviceOriginal.h"
+#import "HSStreamDeckDeviceOriginalV2.h"
+#import "HSStreamDeckDeviceMini.h"
+#import "HSStreamDeckDeviceXL.h"
+#import "HSStreamDeckDeviceMk2.h"
 #import "streamdeck.h"
 
 @interface HSStreamDeckManager : NSObject
 @property (nonatomic, strong) id ioHIDManager;
 @property (nonatomic, strong) NSMutableArray *devices;
 @property (nonatomic) int discoveryCallbackRef;
+@property LSGCCanary lsCanary;
 
 - (id)init;
 - (void)doGC;

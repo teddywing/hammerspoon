@@ -41,6 +41,17 @@
     self.startupEvent = event;
 }
 
+#ifndef NO_INTENTS
+- (id)application:(NSApplication *)application handlerForIntent:(INIntent *)intent  API_AVAILABLE(macos(11.0)){
+    NSLog(@"handlerForIntent: Checking for HSExecuteLuaIntent");
+    if ([intent isKindOfClass:[HSExecuteLuaIntent class]]) {
+        NSLog(@"handlerForIntent: Found HSExecuteLuaIntent, dispatching to HSExecuteLuaIntentHandler");
+        return ([[HSExecuteLuaIntentHandler alloc] init]);
+    }
+    return nil;
+}
+#endif
+
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)fileAndPath {
     NSString *typeOfFile = [[NSWorkspace sharedWorkspace] typeOfFile:fileAndPath error:nil];
 
@@ -49,9 +60,15 @@
         NSError *fileError;
         BOOL success = NO;
         BOOL upgrade = NO;
-        NSString *spoonPath = [MJConfigDir() stringByAppendingPathComponent:@"Spoons"];
+        NSString *spoonPath = [MJConfigDirAbsolute() stringByAppendingPathComponent:@"Spoons"];
         NSString *spoonName = [fileAndPath lastPathComponent];
         NSString *dstSpoonFullPath = [spoonPath stringByAppendingPathComponent:spoonName];
+
+        if ([dstSpoonFullPath isEqualToString:fileAndPath]) {
+            NSLog(@"User double clicked on a Spoon in %@, skipping", MJConfigDirAbsolute());
+            return YES;
+        }
+
         NSFileManager *fileManager = [NSFileManager defaultManager];
 
         // Remove any pre-existing copy of the Spoon
@@ -100,8 +117,8 @@
         if (!self.openFileDelegate) {
             self.startupFile = fileAndPath;
         } else {
-            if ([self.openFileDelegate respondsToSelector:@selector(callbackWithURL:)]) {
-                [self.openFileDelegate callbackWithURL:fileAndPath];
+            if ([self.openFileDelegate respondsToSelector:@selector(callbackWithURL:senderPID:)]) {
+                [self.openFileDelegate callbackWithURL:fileAndPath senderPID:-1];
             }
         }
     } else {
@@ -114,19 +131,20 @@
 
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-    
+    BOOL isTesting = NO;
+
     // User is holding down Command (0x37) & Option (0x3A) keys:
     if (CGEventSourceKeyState(kCGEventSourceStateCombinedSessionState,0x3A) && CGEventSourceKeyState(kCGEventSourceStateCombinedSessionState,0x37)) {
-        
+
         NSAlert *alert = [[NSAlert alloc] init];
         [alert addButtonWithTitle:@"Continue"];
         [alert addButtonWithTitle:@"Delete Preferences"];
         [alert setMessageText:@"Do you want to delete the preferences?"];
         [alert setInformativeText:@"Deleting the preferences will reset all Hammerspoon settings (including everything that uses hs.settings) to their defaults."];
         [alert setAlertStyle:NSAlertStyleWarning];
-        
+
         if ([alert runModal] == NSAlertSecondButtonReturn) {
-            
+
             // Reset Preferences:
             NSDictionary * allObjects;
             allObjects = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
@@ -135,10 +153,10 @@
                 [[NSUserDefaults standardUserDefaults] removeObjectForKey: key];
             }
             [[NSUserDefaults standardUserDefaults] synchronize];
-            
+
         }
     }
-    
+
     [[NSDistributedNotificationCenter defaultCenter] addObserver:self selector:@selector(accessibilityChanged:) name:@"com.apple.accessibility.api" object:nil];
 
     // Remove our early event manager handler so hs.urlevent can register for it later, if the user has it configured to
@@ -147,6 +165,8 @@
     if(NSClassFromString(@"XCTest") != nil) {
         // Hammerspoon Tests
         NSLog(@"in testing mode!");
+        isTesting = YES;
+
         NSBundle *mainBundle = [NSBundle mainBundle];
         NSBundle *bundle = [NSBundle bundleWithPath:[NSString stringWithFormat:@"%@/Contents/Plugins/Hammerspoon Tests.xctest", mainBundle.bundlePath]];
         NSString *lsUnitPath = [bundle pathForResource:@"lsunit" ofType:@"lua"];
@@ -179,7 +199,7 @@
         if (userMJConfigFile) MJConfigFile = userMJConfigFile ;
 
         // Ensure we have a Spoons directory
-        NSString *spoonsPath = [MJConfigDir() stringByAppendingPathComponent:@"Spoons"];
+        NSString *spoonsPath = [MJConfigDirAbsolute() stringByAppendingPathComponent:@"Spoons"];
         NSFileManager *fileManager = [NSFileManager defaultManager];
         BOOL spoonsPathIsDir;
         BOOL spoonsPathExists = [fileManager fileExistsAtPath:spoonsPath isDirectory:&spoonsPathIsDir];
@@ -205,12 +225,23 @@
 
     [self registerDefaultDefaults];
 
-    // Enable Crashlytics, if we have an API key available
-#ifdef CRASHLYTICS_API_KEY
-    if (HSUploadCrashData()) {
-        Crashlytics *crashlytics = [Crashlytics sharedInstance];
-        crashlytics.debugMode = YES;
-        [Crashlytics startWithAPIKey:[NSString stringWithUTF8String:CRASHLYTICS_API_KEY] delegate:self];
+    // Enable Sentry, if we have an API URL available
+#ifdef SENTRY_API_URL
+    if (HSUploadCrashData() && !isTesting) {
+        SentryEvent* (^sentryWillUploadCrashReport) (SentryEvent *event) = ^SentryEvent* (SentryEvent *event) {
+            if ([event.extra objectForKey:@"MjolnirModuleLoaded"]) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                   [self showMjolnirMigrationNotification];
+                });
+            }
+            return event;
+        };
+
+        [SentrySDK startWithOptions:@{
+            @"dsn": @SENTRY_API_URL,
+            @"beforeSend": sentryWillUploadCrashReport,
+            @"release": [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"]
+        }];
     }
 #endif
 
@@ -244,7 +275,7 @@
 
 // Dragging & Dropping of Text to Dock Item
 -(void) processDockIconDraggedText:(NSPasteboard *)pboard userData:(NSString *)userData error:(NSString **)error {
-    NSString *pboardString = [pboard stringForType:NSStringPboardType];
+    NSString *pboardString = [pboard stringForType:NSPasteboardTypeString];
     textDroppedToDockIcon(pboardString);
 }
 
@@ -271,7 +302,7 @@
 - (void) registerDefaultDefaults {
     [[NSUserDefaults standardUserDefaults]
      registerDefaults: @{@"NSApplicationCrashOnExceptions": @YES,
-                         MJShowDockIconKey: @YES,
+                         MJShowDockIconKey: @NO,
                          MJShowMenuIconKey: @YES,
                          HSAutoLoadExtensions: @YES,
                          HSUploadCrashDataKey: @YES,
@@ -301,7 +332,7 @@
     @try {
         [[NSApplication sharedApplication] orderFrontStandardAboutPanel: nil];
     } @catch (NSException *exception) {
-        [[LuaSkin shared] logError:@"Unable to open About dialog. This may mean your Hammerspoon installation is corrupt. Please re-install it!"];
+        [LuaSkin logError:@"Unable to open About dialog. This may mean your Hammerspoon installation is corrupt. Please re-install it!"];
     }
 }
 
@@ -334,28 +365,16 @@
     [alert runModal];
 }
 
-- (void)crashlyticsDidDetectReportForLastExecution:(CLSReport *)report completionHandler:(void (^)(BOOL submit))completionHandler {
-    BOOL showMjolnirMigrationDialog = NO;
-
-    if ([report.customKeys objectForKey:@"MjolnirModuleLoaded"]) {
-        showMjolnirMigrationDialog = YES;
-    }
-
-    completionHandler(YES);
-
-    if (showMjolnirMigrationDialog) {
-        [self showMjolnirMigrationNotification];
-    }
-}
-
 #pragma mark - Sparkle delegate methods
 - (void)updater:(id)updater didFindValidUpdate:(id)update {
-    NSLog(@"Update found: %@", [update valueForKey:@"versionString"]);
+    NSLog(@"Update found: %@ (Build: %@)", [update valueForKey:@"displayVersionString"], [update valueForKey:@"versionString"]);
     self.updateAvailable = [update valueForKey:@"versionString"];
+    self.updateAvailableDisplayVersion = [update valueForKey:@"displayVersionString"];
 }
 
 - (void)updaterDidNotFindUpdate:(id)update {
     self.updateAvailable = nil;
+    self.updateAvailableDisplayVersion = nil;
 }
 
 @end

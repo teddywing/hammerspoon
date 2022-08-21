@@ -149,7 +149,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.9.75</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -167,8 +167,6 @@
 			</array>
 		</dict>
 		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
 			<key>CFBundleURLName</key>
 			<string>hammerspoon.Hammerspoon.http</string>
 			<key>CFBundleURLSchemes</key>
@@ -177,8 +175,6 @@
 			</array>
 		</dict>
 		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
 			<key>CFBundleURLName</key>
 			<string>hammerspoon.Hammerspoon.https</string>
 			<key>CFBundleURLSchemes</key>
@@ -186,27 +182,27 @@
 				<string>https</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>org.hammerspoon.Hammerspoon.mailto</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>mailto</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>0.9.75</string>
-	<key>Fabric</key>
-	<dict>
-		<key>APIKey</key>
-		<string>a9a43ddffec0ebfb007388756dfd662a9c153188</string>
-		<key>Kits</key>
-		<array>
-			<dict>
-				<key>KitInfo</key>
-				<dict/>
-				<key>KitName</key>
-				<string>Crashlytics</string>
-			</dict>
-		</array>
-	</dict>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>INIntentsSupported</key>
+	<array>
+		<string>HSExecuteLuaIntent</string>
+	</array>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.developer-tools</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>${MACOSX_DEPLOYMENT_TARGET}</string>
+	<key>LSUIElement</key>
+	<true/>
 	<key>NSAppSleepDisabled</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -218,12 +214,18 @@
 	<string>Hammerspoon needs to send events to automate applications.</string>
 	<key>NSAppleScriptEnabled</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Some Hammerspoon extensions require access to the camera.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Released under MIT license.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Some Hammerspoon extensions (such as hs.location) require access to your location.</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Some Hammerspoon extensions (such as hs.noises) require access to the microphone.</string>
 	<key>NSPrincipalClass</key>
-	<string>NSApplication</string>
+	<string>SentryCrashExceptionApplication</string>
 	<key>NSServices</key>
 	<array>
 		<dict>
@@ -257,6 +259,10 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>HSExecuteLuaIntent</string>
+	</array>
 	<key>NSUserNotificationAlertStyle</key>
 	<string>alert</string>
 	<key>OSAScriptingDefinition</key>
@@ -280,7 +286,7 @@
 			<key>UTTypeIdentifier</key>
 			<string>org.hammerspoon.Hammerspoon.Spoon</string>
 			<key>UTTypeReferenceURL</key>
-			<string>http://www.hammerspoon.org/</string>
+			<string>https://www.hammerspoon.org/</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>

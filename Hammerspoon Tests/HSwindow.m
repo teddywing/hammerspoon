@@ -8,11 +8,11 @@
 
 #import "HSTestCase.h"
 
-@interface HSwindow : HSTestCase
+@interface HSwindowTests : HSTestCase
 
 @end
 
-@implementation HSwindow
+@implementation HSwindowTests
 
 - (void)setUp {
     [super setUpWithRequire:@"test_window"];
@@ -31,11 +31,13 @@
 
 - (void)testDesktop {
     SKIP_IN_TRAVIS()
+    SKIP_IN_GITHUB_ACTIONS()
     RUN_LUA_TEST()
 }
 
 - (void)testOrderedWindows {
     SKIP_IN_TRAVIS()
+    SKIP_IN_GITHUB_ACTIONS()
     RUN_LUA_TEST()
 }
 
@@ -44,6 +46,8 @@
 }
 
 - (void)testSnapshots {
+    SKIP_IN_GITHUB_ACTIONS()
+    SKIP_IN_TRAVIS() // Added by @latenitefilms
     RUN_LUA_TEST()
 }
 
@@ -52,6 +56,7 @@
 }
 
 - (void)testRoles {
+    SKIP_IN_GITHUB_ACTIONS()
     RUN_LUA_TEST()
 }
 
@@ -60,10 +65,13 @@
 }
 
 - (void)testSize {
+    SKIP_IN_TRAVIS() // Added by @latenitefilms
+    SKIP_IN_GITHUB_ACTIONS()
     RUN_LUA_TEST()
 }
 
 - (void)testMinimize {
+    SKIP_IN_GITHUB_ACTIONS()
     RUN_LUA_TEST()
 }
 
@@ -77,18 +85,22 @@
 
 - (void)testTabs {
     SKIP_IN_TRAVIS()
+    SKIP_IN_GITHUB_ACTIONS()
     RUN_LUA_TEST()
 }
 
 - (void)testClose {
+    SKIP_IN_GITHUB_ACTIONS()
     RUN_LUA_TEST()
 }
 
 - (void)testFullscreen {
+    SKIP_IN_GITHUB_ACTIONS()
     RUN_LUA_TEST()
 }
 
 - (void)testFullscreenOne {
+    SKIP_IN_GITHUB_ACTIONS()
     SKIP_IN_TRAVIS()
     [self luaTestWithCheckAndTimeOut:5 setupCode:@"testFullscreenOneSetup()" checkCode:@"testFullscreenOneResult()"];
 }

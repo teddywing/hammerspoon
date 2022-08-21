@@ -6,7 +6,8 @@
 @end
 
 @interface HSCanvasView : NSView <NSDraggingDestination>
-@property int                 selfRef ;
+@property int                 selfRef ; // used during fadeOut to make sure collection doesn't interrupt
+@property int                 selfRefCount ;
 @property HSCanvasWindow     *wrapperWindow ;
 @property int                 mouseCallbackRef ;
 @property int                 draggingCallbackRef ;
@@ -73,19 +74,19 @@
 }
 
 #define COMPOSITING_TYPES @{ \
-    @"clear"           : @(NSCompositeClear), \
-    @"copy"            : @(NSCompositeCopy), \
-    @"sourceOver"      : @(NSCompositeSourceOver), \
-    @"sourceIn"        : @(NSCompositeSourceIn), \
-    @"sourceOut"       : @(NSCompositeSourceOut), \
-    @"sourceAtop"      : @(NSCompositeSourceAtop), \
-    @"destinationOver" : @(NSCompositeDestinationOver), \
-    @"destinationIn"   : @(NSCompositeDestinationIn), \
-    @"destinationOut"  : @(NSCompositeDestinationOut), \
-    @"destinationAtop" : @(NSCompositeDestinationAtop), \
-    @"XOR"             : @(NSCompositeXOR), \
-    @"plusDarker"      : @(NSCompositePlusDarker), \
-    @"plusLighter"     : @(NSCompositePlusLighter), \
+    @"clear"           : @(NSCompositingOperationClear), \
+    @"copy"            : @(NSCompositingOperationCopy), \
+    @"sourceOver"      : @(NSCompositingOperationSourceOver), \
+    @"sourceIn"        : @(NSCompositingOperationSourceIn), \
+    @"sourceOut"       : @(NSCompositingOperationSourceOut), \
+    @"sourceAtop"      : @(NSCompositingOperationSourceAtop), \
+    @"destinationOver" : @(NSCompositingOperationDestinationOver), \
+    @"destinationIn"   : @(NSCompositingOperationDestinationIn), \
+    @"destinationOut"  : @(NSCompositingOperationDestinationOut), \
+    @"destinationAtop" : @(NSCompositingOperationDestinationAtop), \
+    @"XOR"             : @(NSCompositingOperationXOR), \
+    @"plusDarker"      : @(NSCompositingOperationPlusDarker), \
+    @"plusLighter"     : @(NSCompositingOperationPlusLighter), \
 }
 
 #define WINDING_RULES @{ \
